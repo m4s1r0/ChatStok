@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<style type="text/css" src="~/lib/bootstrap/dist/css/bootstrap.css"></style>
+
+<script src="~/lib/jquery/dist/jquery.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+<script src="~/lib/aspnet/signalr/dist/browser/signalr.js"></script>
+
+<div class="container">
+    <div class="row"></div>
+    <div class="row">
+        <div class="col-md-12"></div>
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="userName">User name</label>
+                <input type="text" id="userName" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label for="userMessage">Message</label>
+                <input type="text" id="userMessage" class="form-control" />
+                <small id="" class="form-text text-muted">Tip: You can type <code>stock:aapl.us</code> to request a stock quote</small>
+            </div>
+            <input type="button" id="btnSendMessage" value="Send Message" class="btn btn-block btn-primary" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <hr />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <ul id="messagesList" class="list-group"></ul>
+        </div>
+    </div>
+</div>
+
+<div class="modal" tabindex="-1" role="dialog" id="myModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Enter a nick name</h5>
+        @*<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>*@
+      </div>
+      <div class="modal-body">
+        <input type="text" id="userNick" class="form-control" placeholder="Nick name" />
+        <small id="emailHelp" class="form-text text-muted alert-danger hide">A nick name is required</small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="btnAccept">Accept</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+    var connection = new signalR.HubConnectionBuilder()
+                                .withUrl("/chatHub/")
+                                .build();
+    document.getElementById("btnSendMessage").disabled = true;
+
+    connection.on("ReceiveMessage", function(user, message) {
+        var msg = message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        var encodedMsg = user + ": " + msg;
+        var li = document.createElement("li");
+        li.textContent = encodedMsg;
+        li.className = 'list-group-item';
+
+        if (user == 'System') {
+            li.className += ' list-group-item-info';
+        }
+        $('#messagesList').prepend(li);
+    });
+
+    connection.start().then(function () {
+        document.getElementById("btnSendMessage").disabled = false;
+    }).catch(function (err) {
+        return console.error(err.toString());
+    });
+
+    document.getElementById("btnSendMessage").addEventListener("click", function (evt) {
+        var user = document.getElementById("userName").value;
+        var message = document.getElementById("userMessage").value;
+        document.getElementById("userMessage").value = "";
+        connection.invoke("SendMessage", user, message).catch(function (err) {
+            return console.error(err.toString());
+        });
+        
+        $("#userMessage").focus();
+        evt.preventDefault();
+    });
+
+    
+
+    $(document).ready(function() {
+        $('#myModal').on('shown.bs.modal', function () {
+            $('#userNick').trigger('focus');
+        });
+
+        $('#myModal').on('hidden.bs.modal', function(e) {
+            var userName = $('#userName').val();
+
+            if (userName == '' || userName == null || userName.trim() == '') {
+                $('#myModal').modal();
+            }
+
+            $('#userMessage').trigger('focus');
+        });
+
+        $('#btnAccept').click(function() {             
+            var userNick = $('#userNick').val();
+
+            if (userNick == '' || userNick == null || userNick.trim() == '') {
+                $('#emailHelp').show();
+                return;
+            }
+
+            $('#emailHelp').hide();
+            $('#userName').val(userNick);
+            $('#myModal').modal('hide');
+        });
+
+        $('#myModal').modal();
+    });
+</script>

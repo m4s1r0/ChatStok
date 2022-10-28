@@ -1,0 +1,28 @@
+﻿@{
+    ViewData["Title"] = "Privacy Policy";
+}
+
+<h1>Installation guide and use instruction</h1>
+
+<h3>Installation</h3>
+<p>Unzip all files, you root directory must be like this
+    <br />
+    <img src="~/img/shot-01-root-dir.png" />
+</p>
+
+<h3>Setup</h3>
+<p>Open solution properties
+    <br />
+    <img src="~/img/shot-02-sol-prop.png" />
+</p>
+<p>
+    Set up the following startup projects:
+    <br />
+    <img src="~/img/shot-03-startup-projs.png" />
+</p>
+
+<h3>Setup RabbitMQ (requires Docker)</h3>
+<p>Enter following command on you terminal:
+    <br />
+    <code>$ docker run -d --hostname my-rabbitmq-server --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management</code>
+</p>
